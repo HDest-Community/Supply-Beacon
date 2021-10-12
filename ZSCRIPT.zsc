@@ -137,8 +137,8 @@ class HDSupplyBeacon : HDWeapon
 			sb.DrawImage(TexMan.GetName(Slots[i].Icon), imagePos + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_CENTER, box: (15, 15), scale: (2.0, 2.0));
 
 			double bulkDiv = Slots[i].Bulk;
-			int minAmt = 180 / bulkDiv / totalLoaded;
-			int maxAmt = 360 / bulkDiv / totalLoaded;
+			int minAmt = int(180 / bulkDiv / totalLoaded);
+			int maxAmt = int(360 / bulkDiv / totalLoaded);
 
 			int textFlags = 0;
 			vector2 textPos = (-50 * cos(90 * i), 50 * sin(90 * i));
@@ -361,7 +361,7 @@ class HDSupplyDropPod : Actor
 				let beacon = HDSupplyBeacon(master);
 				DistantQuaker.Quake(self, 7, 70, 1024, 8, 128, 256, 256);
 				A_StartSound("SupplyPod/Slam", CHAN_VOICE, attenuation: 0.2);
-				A_Explode(40000, HDCONST_ONEMETRE * 3, damagetype: 'Bashing');
+				A_Explode(40000, int(HDCONST_ONEMETRE * 3), damagetype: 'Bashing');
 				bool success; Actor a;
 				for (int i = 0; i < 100; ++i)
 				{
@@ -378,8 +378,8 @@ class HDSupplyDropPod : Actor
 						continue;
 					}
 					double bulkDiv = GetDefaultByType(beacon.SlotClasses[i]).Bulk;
-					int minAmt = 180 / bulkDiv / totalLoaded;
-					int maxAmt = 360 / bulkDiv / totalLoaded;
+					int minAmt = int(180 / bulkDiv / totalLoaded);
+					int maxAmt = int(360 / bulkDiv / totalLoaded);
 					[success, a] = A_SpawnItemEx(beacon.SlotClasses[i], radius / 2, 0, height / 4, frandom(1.0, 1.5), frandom(0.2, 0.6), frandom(2.0, 5.0), 90 + 90 * i, SXF_NOCHECKPOSITION);
 					Inventory(a).Amount = random(minAmt, maxAmt);
 				}
