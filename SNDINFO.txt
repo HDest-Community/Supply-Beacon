@@ -1,0 +1,2 @@
+SupplyBeacon/Idle SPBCIDLE
+SupplyPod/Slam SPBCSLAM
