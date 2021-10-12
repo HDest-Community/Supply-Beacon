@@ -341,6 +341,7 @@ class HDSupplyDropPod : Actor
 	Default
 	{
 		+SOLID
+		+NODAMAGETHRUST
 		Mass 10000;
 		Radius 25;
 		Height 60;
