@@ -343,10 +343,9 @@ class HDSupplyDropPod : Actor
 		+SOLID
 		+NODAMAGETHRUST
 		Mass 10000;
-		Radius 25;
-		Height 60;
-		XScale 2.0;
-		YScale 1.66;
+		Radius 20;
+		Height 55;
+		Scale 0.7;
 	}
 
 	States
@@ -356,9 +355,10 @@ class HDSupplyDropPod : Actor
 			SPDP A 0 A_ScaleVelocity(1.05);
 			Loop;
 		Hoard:
-			SPDP A -1
+			SPDP A 25
 			{
-				let beacon = HDSupplyBeacon(master);
+				master.bINVISIBLE = true;
+				master.bNOINTERACTION = true;
 				DistantQuaker.Quake(self, 7, 70, 1024, 8, 128, 256, 256);
 				A_StartSound("SupplyPod/Slam", CHAN_VOICE, attenuation: 0.2);
 				A_Explode(40000, int(HDCONST_ONEMETRE * 3), damagetype: 'Bashing');
@@ -370,7 +370,15 @@ class HDSupplyDropPod : Actor
 					[success, a] = A_SpawnItemEx('WallChunk', radius, 0, 0, frandom(1.0, 20.0), 0, frandom(2.0, 12.0), random(0, 359));
 					a.scale *= frandom(1.0, 4.0);
 				}
+			}
+			SPDP B 5 A_StartSound("SupplyPod/Open", pitch: 0.85);
+			SPDP CD 5;
+			SPDP E 5
+			{
+				let beacon = HDSupplyBeacon(master);
 				int totalLoaded = beacon.A_GetLoadedAmmoCount();
+
+				bool success; Actor a;
 				for (int i = 0; i < beacon.SlotCount; ++i)
 				{
 					if (!beacon.SlotClasses[i])
@@ -380,11 +388,12 @@ class HDSupplyDropPod : Actor
 					double bulkDiv = GetDefaultByType(beacon.SlotClasses[i]).Bulk;
 					int minAmt = int(180 / bulkDiv / totalLoaded);
 					int maxAmt = int(360 / bulkDiv / totalLoaded);
-					[success, a] = A_SpawnItemEx(beacon.SlotClasses[i], radius / 2, 0, height / 4, frandom(1.0, 1.5), frandom(0.2, 0.6), frandom(2.0, 5.0), 90 + 90 * i, SXF_NOCHECKPOSITION);
+					[success, a] = A_SpawnItemEx(beacon.SlotClasses[i], radius / 2, 0, height / 3, frandom(3.0, 5.0), frandom(0.1, 0.3), frandom(2.0, 4.0), 90 + 90 * i, SXF_NOCHECKPOSITION);
 					Inventory(a).Amount = random(minAmt, maxAmt);
 				}
 				beacon.Destroy();
 			}
+			SPDP F -1;
 			Stop;
 	}
 }

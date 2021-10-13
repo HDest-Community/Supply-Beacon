@@ -1,2 +1,3 @@
 SupplyBeacon/Idle SPBCIDLE
 SupplyPod/Slam SPBCSLAM
+SupplyPod/Open SPBCOPEN
