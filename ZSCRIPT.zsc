@@ -30,7 +30,7 @@ class HDSupplyBeacon : HDWeapon
 		invoker.AvailableAmmo.Clear();
 		for (Inventory next = Inv; next != null; next = next.Inv)
 		{
-			if (next is 'HDAmmo' && !(next is 'HDMagAmmo'))
+			if (next is 'HDAmmo' && !(next is 'HDMagAmmo') && !HDAmmo(next).bCHEATNOGIVE)
 			{
 				invoker.AvailableAmmo.Push(HDAmmo(next));
 			}
