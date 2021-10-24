@@ -30,7 +30,7 @@ class HDSupplyBeacon : HDWeapon
 		invoker.AvailableAmmo.Clear();
 		for (Inventory next = Inv; next != null; next = next.Inv)
 		{
-			if (next is 'PortableMedikit' || next is 'HDAmmo' && !HDAmmo(next).bCHEATNOGIVE && (next is 'HDInjectorMaker' || !next.bINVBAR))
+			if (next is 'PortableMedikit' || next is 'FourMilAmmo' || next is 'HDAmmo' && !HDAmmo(next).bCHEATNOGIVE && (next is 'HDInjectorMaker' || !next.bINVBAR))
 			{
 				invoker.AvailableAmmo.Push(HDPickup(next));
 			}
