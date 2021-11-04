@@ -2,5 +2,5 @@ Code:
 - Accensus
 
 Sprites:
-- Hege Cactus (beacon)
-- Pillowblaster (drop pod)
+- Hege Cactus for the beacon pickup and Daina, obviously. Who else?
+- Pillowblaster for the drop pod.
