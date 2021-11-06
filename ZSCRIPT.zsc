@@ -355,12 +355,6 @@ class HDSupplyBeacon : HDWeapon
 
 class HDSupplyDropPod : Actor
 {
-	override void TIck()
-	{
-		AceCore.DrawCollisionBox(self);
-		Super.Tick();
-	}
-
 	Default
 	{
 		+SOLID
