@@ -116,7 +116,7 @@ class HDSupplyBeacon : HDWeapon
 		sb.DrawImage(GetPickupSprite(), bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_CENTER, box: (60, 60), scale: (2.0, 2.0));
 
 		int size = AvailableAmmo.Size();
-		if (size > 0 && SelIndex < size)
+		if (size > 0 && SelIndex < size && AvailableAmmo[SelIndex])
 		{
 			sb.DrawImage(AceCore.GetIcon(AvailableAmmo[SelIndex], invIconFirst: true), (0, 95) + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_BOTTOM, box: (30, 30), scale: (5.0, 5.0));
 			sb.DrawString(sb.pSmallFont, AvailableAmmo[SelIndex].GetTag(), (0, 100) + bob, sb.DI_SCREEN_CENTER | sb.DI_TEXT_ALIGN_CENTER, Font.CR_WHITE);
