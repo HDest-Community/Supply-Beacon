@@ -85,18 +85,7 @@ class HDSupplyBeacon : HDWeapon
 	{
 		for (int i = 0; i < SlotCount; ++i)
 		{
-			if (SlotClasses[i])
-			{
-				if (SlotClasses[i] is 'HDMagAmmo')
-				{
-					HDMagAmmo.GiveMag(other, SlotClasses[i], MagAmounts[i]);
-				}
-				else
-				{
-					other.A_GiveInventory(SlotClasses[i]);
-				}
-				SlotClasses[i] = null;
-			}
+			SlotClasses[i] = null;
 		}
 		Active = false;
 		FullHeight = 0;
@@ -308,14 +297,6 @@ class HDSupplyBeacon : HDWeapon
 					if (invoker.Slots[i])
 					{
 						invoker.SlotClasses[i] = invoker.Slots[i].GetClass();
-						if (invoker.Slots[i] is 'HDMagAmmo')
-						{
-							invoker.MagAmounts[i] = HDMagAmmo(invoker.Slots[i]).TakeMag(false);
-						}
-						else
-						{
-							A_TakeInventory(invoker.Slots[i].GetClass(), 1);
-						}
 						invoker.Slots[i] = null;
 					}
 				}
