@@ -8,6 +8,11 @@ class HDSupplyBeacon : HDWeapon
 		SBProp_UseOffset
 	}
 
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		return Active && other.bSOLID && !other.player || Super.CanCollideWith(other, passive);
+	}
+
 	override void DoEffect()
 	{
 		for (int i = 0; i < SlotCount; ++i)
@@ -182,6 +187,7 @@ class HDSupplyBeacon : HDWeapon
 		+HDWEAPON.FITSINBACKPACK
 		+INVENTORY.INVBAR
 		+WEAPON.WIMPY_WEAPON
+		+CANPASS
 		HDWeapon.RefID "spb";
 		Inventory.MaxAmount 5;
 		Inventory.Icon "SPBCZ0";
