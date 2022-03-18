@@ -180,6 +180,7 @@ class HDSupplyBeacon : HDWeapon
 	private bool Active;
 	private int ArrivalTicker;
 	private Actor PrevOwner;
+	private int ActivationDelay;
 
 	Default
 	{
@@ -201,9 +202,9 @@ class HDSupplyBeacon : HDWeapon
 		Spawn:
 			SPBC A 1
 			{
-				if (invoker.Active && invoker.vel.length() < 1)
+				if (invoker.Active && invoker.vel.length() < 1 && ++invoker.ActivationDelay >= 10)
 				{
-					if (TexMan.GetName(invoker.ceilingpic) ~== "F_SKY1")
+					if (AceCore.IsSkyAbove(invoker))
 					{
 						SetStateLabel('WindUp');
 						return;
@@ -309,6 +310,7 @@ class HDSupplyBeacon : HDWeapon
 				invoker.Active = true;
 				invoker.SetShade(player.GetColor());
 				invoker.PrevOwner = invoker.owner;
+				invoker.ActivationDelay = 0;
 				DropInventory(invoker);
 			}
 			Wait;
