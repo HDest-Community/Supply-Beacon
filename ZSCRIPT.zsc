@@ -151,8 +151,8 @@ class HDSupplyBeacon : HDWeapon
 					bulkDiv *= 2.5;
 				}
 			}
-			int minAmt = int(180 / bulkDiv / totalLoaded);
-			int maxAmt = int(360 / bulkDiv / totalLoaded);
+			int minAmt = int(360 / bulkDiv / totalLoaded);
+			int maxAmt = int(480 / bulkDiv / totalLoaded);
 
 			int textFlags = 0;
 			vector2 textPos = (-50 * cos(90 * i), 50 * sin(90 * i));
@@ -449,11 +449,11 @@ class HDSupplyDropPod : Actor
 						}
 						if (beacon.SlotClasses[i] is 'HDInjectorMaker')
 						{
-							bulkDiv *= 2;
+							bulkDiv *= 2.5;
 						}
 					}
-					int minAmt = int(180 / bulkDiv / totalLoaded);
-					int maxAmt = int(360 / bulkDiv / totalLoaded);
+					int minAmt = int(360 / bulkDiv / totalLoaded);
+					int maxAmt = int(480 / bulkDiv / totalLoaded);
 					[success, a] = A_SpawnItemEx(beacon.SlotClasses[i], radius / 2, 0, height / 3, frandom(2.0, 2.25), frandom(0.15, 0.4), frandom(2.0, 4.0), -90 + 90 * i, SXF_NOCHECKPOSITION);
 					Inventory(a).Amount = random(minAmt, maxAmt);
 				}
