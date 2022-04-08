@@ -1,5 +1,52 @@
 version "4.5"
 
+class SupplyOrder play
+{
+	HDPickup InvRef;
+	class<HDPickup> Type;
+
+	static SupplyOrder Create(HDPickup ref)
+	{
+		let order = new('SupplyOrder');
+		order.InvRef = ref;
+		order.Type = ref.GetClass();
+		return order;
+	}
+
+	static bool IsValidType(HDPickup item)
+	{
+		return item && item is 'FourMilAmmo' || item is 'HDAmmo' && !item.bCHEATNOGIVE && (item is 'HDInjectorMaker' || !item.bINVBAR);
+	}
+
+	clearscope int, int GetDropAmount(int itemCount)
+	{
+		double divFac = max(1, itemCount * 0.75);
+		int minAmt = int(600 / divFac);
+		int maxAmt = int(1000 / divFac);
+
+		double finalDiv = 1;
+		if (!(Type is 'HDRoundAmmo'))
+		{
+			finalDiv += 40;
+			if (Type is 'HDMagAmmo' && GetDefaultByType((class<HDMagAmmo>)(Type)).MagBulk > 0)
+			{
+				finalDiv += 15;
+			}
+			if (Type is 'HDInjectorMaker')
+			{
+				finalDiv += 15;
+			}
+		}
+
+		if (Type is 'FourMilAmmo')
+		{
+			finalDiv = 0.5;
+		}
+
+		return int(minAmt / finalDiv), int(maxAmt / finalDiv);
+	}
+}
+
 class HDSupplyBeacon : HDWeapon
 {
 	enum SBProperty
@@ -17,9 +64,9 @@ class HDSupplyBeacon : HDWeapon
 	{
 		for (int i = 0; i < SlotCount; ++i)
 		{
-			if (Slots[i] && !Slots[i].owner)
+			if (Slots[i] && (!Slots[i].InvRef || !Slots[i].InvRef.owner))
 			{
-				Slots[i] = null;
+				Slots[i].Destroy();
 			}
 		}
 		Super.DoEffect();
@@ -30,22 +77,23 @@ class HDSupplyBeacon : HDWeapon
 		invoker.WeaponStatus[SBProp_UseOffset] += ofs;
 	}
 
-	private action void A_FetchAvailableAmmo()
+	private action void A_FetchAvailableItems()
 	{
-		invoker.AvailableAmmo.Clear();
+		invoker.AvailableItems.Clear();
 		for (Inventory next = Inv; next != null; next = next.Inv)
 		{
-			if (next is 'PortableMedikit' || next is 'FourMilAmmo' || next is 'HDAmmo' && !HDAmmo(next).bCHEATNOGIVE && (next is 'HDInjectorMaker' || !next.bINVBAR))
+			if (SupplyOrder.IsValidType(HDPickup(next)))
 			{
-				invoker.AvailableAmmo.Push(HDPickup(next));
+				invoker.AvailableItems.Push(SupplyOrder.Create(HDPickup(next)));
 			}
 		}
+		invoker.SelIndex = clamp(invoker.SelIndex, 0, invoker.AvailableItems.Size() - 1);
 	}
 
 	private action void A_CheckCycle(int cycleDir)
 	{
-		A_FetchAvailableAmmo();
-		int size = invoker.AvailableAmmo.Size();
+		A_FetchAvailableItems();
+		int size = invoker.AvailableItems.Size();
 		if (size == 0)
 		{
 			return;
@@ -56,7 +104,7 @@ class HDSupplyBeacon : HDWeapon
 				++invoker.SelIndex %= size;
 				break;
 			case -1:
-				invoker.SelIndex = invoker.SelIndex == 0 ? invoker.AvailableAmmo.Size() - 1 : invoker.SelIndex - 1;
+				invoker.SelIndex = invoker.SelIndex == 0 ? invoker.AvailableItems.Size() - 1 : invoker.SelIndex - 1;
 				break;
 		}
 	}
@@ -65,7 +113,7 @@ class HDSupplyBeacon : HDWeapon
 	{
 		for (int i = 0; i < SlotCount; ++i)
 		{
-			if (invoker.Slots[i] && invoker.Slots[i].GetClass() == cls)
+			if (invoker.Slots[i] && invoker.Slots[i].Type == cls)
 			{
 				return true;
 			}
@@ -73,25 +121,21 @@ class HDSupplyBeacon : HDWeapon
 		return false;
 	}
 
-	clearscope action int A_GetLoadedAmmoCount()
+	clearscope action int A_GetLoadedItemCount()
 	{
-		int loadedAmmoCount = 0;
+		int count = 0;
 		for (int i = 0; i < SlotCount; ++i)
 		{
-			if (invoker.Slots[i] || invoker.SlotClasses[i])
+			if (invoker.Slots[i])
 			{
-				loadedAmmoCount++;
+				count++;
 			}
 		}
-		return loadedAmmoCount;
+		return count;
 	}
 
 	override void ActualPickup(Actor other, bool silent)
 	{
-		for (int i = 0; i < SlotCount; ++i)
-		{
-			SlotClasses[i] = null;
-		}
 		Active = false;
 		FullHeight = 0;
 		ArrivalTicker = 0;
@@ -116,43 +160,31 @@ class HDSupplyBeacon : HDWeapon
 
 		sb.DrawImage(GetPickupSprite(), bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_CENTER, box: (60, 60), scale: (2.0, 2.0));
 
-		int size = AvailableAmmo.Size();
-		if (size > 0 && SelIndex < size && AvailableAmmo[SelIndex])
+		int size = AvailableItems.Size();
+		if (size > 0 && SelIndex < size && AvailableItems[SelIndex])
 		{
-			sb.DrawImage(AceCore.GetIcon(AvailableAmmo[SelIndex], invIconFirst: true), (0, 95) + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_BOTTOM, box: (30, 30), scale: (5.0, 5.0));
-			sb.DrawString(sb.pSmallFont, AvailableAmmo[SelIndex].GetTag(), (0, 100) + bob, sb.DI_SCREEN_CENTER | sb.DI_TEXT_ALIGN_CENTER, Font.CR_WHITE);
+			sb.DrawImage(AceCore.GetIcon(AvailableItems[SelIndex].InvRef, invIconFirst: true), (0, 95) + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_BOTTOM, box: (30, 30), scale: (5.0, 5.0));
+			sb.DrawString(sb.pSmallFont, AvailableItems[SelIndex].InvRef.GetTag(), (0, 100) + bob, sb.DI_SCREEN_CENTER | sb.DI_TEXT_ALIGN_CENTER, Font.CR_WHITE);
 		}
 		else if (offset < 5)
 		{
 			sb.DrawString(sb.pSmallFont, "No ammo selected.", (0, 80) + bob, sb.DI_SCREEN_CENTER | sb.DI_TEXT_ALIGN_CENTER, Font.CR_GOLD);
 		}
 
-		int totalLoaded = A_GetLoadedAmmoCount();
+		int totalLoaded = A_GetLoadedItemCount();
 		for (int i = 0; i < Slots.Size(); ++i)
 		{
 			if (!Slots[i])
 			{
 				continue;
 			}
+
 			vector2 imagePos = (-35 * cos(90 * i), 35 * sin(90 * i));
 
-			sb.DrawImage(AceCore.GetIcon(Slots[i], invIconFirst: true), imagePos + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_CENTER, box: (15, 15), scale: (5.0, 5.0));
+			sb.DrawImage(AceCore.GetIcon(Slots[i].InvRef, invIconFirst: true), imagePos + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_CENTER, box: (15, 15), scale: (5.0, 5.0));
 
-			double bulkDiv = Slots[i].Bulk;
-			if (Slots[i] is 'HDMagAmmo')
-			{
-				let mag = HDMagAmmo(Slots[i]);
-				if (mag.MagBulk > 0)
-				{
-					bulkDiv = mag.MagBulk * 2 + mag.RoundBulk * mag.MaxPerUnit; // [Ace] It's always more efficient to get loose ammo.
-				}
-				if (Slots[i] is 'HDInjectorMaker')
-				{
-					bulkDiv *= 2.5;
-				}
-			}
-			int minAmt = int(360 / bulkDiv / totalLoaded);
-			int maxAmt = int(480 / bulkDiv / totalLoaded);
+			int minAmt, maxAmt;
+			[minAmt, maxAmt] = Slots[i].GetDropAmount(totalLoaded);
 
 			int textFlags = 0;
 			vector2 textPos = (-50 * cos(90 * i), 50 * sin(90 * i));
@@ -169,11 +201,10 @@ class HDSupplyBeacon : HDWeapon
 	}
 
 	const SlotCount = 4;
-	private Array<HDPickup> AvailableAmmo;
+
+	private Array<SupplyOrder> AvailableItems;
+	SupplyOrder Slots[SlotCount];
 	private int SelIndex;
-	private HDPickup Slots[SlotCount];
-	class<HDPickup> SlotClasses[SlotCount];
-	private int MagAmounts[SlotCount];
 
 	private PointLight DynLight;
 	private double FullHeight;
@@ -209,9 +240,12 @@ class HDSupplyBeacon : HDWeapon
 						SetStateLabel('WindUp');
 						return;
 					}
-					else if (invoker.PrevOwner)
+					else
 					{
-						invoker.PrevOwner.A_Log("Insufficient space for drop pod to land. Please relocate beacon.", true);
+						if (invoker.PrevOwner)
+						{
+							invoker.PrevOwner.A_Log("Insufficient space for drop pod to land. Please relocate beacon.", true);
+						}
 						invoker.Active = false;
 					}
 				}
@@ -252,6 +286,7 @@ class HDSupplyBeacon : HDWeapon
 				}
 				if (++invoker.ArrivalTicker == 350)
 				{
+					invoker.bNOINTERACTION = true;
 					invoker.A_SpawnItemEx('HDSupplyDropPod', 0, 0, ceilingz - floorz, 0, 0, -80, 180, flags: SXF_SETMASTER | SXF_NOCHECKPOSITION);
 				}
 				for (int i = 0; i < 360; ++i)
@@ -264,7 +299,7 @@ class HDSupplyBeacon : HDWeapon
 		Select:
 			TNT1 A 0
 			{
-				A_FetchAvailableAmmo();
+				A_FetchAvailableItems();
 				A_AddOffset(100);
 			}
 			Goto Super::Select;
@@ -293,19 +328,11 @@ class HDSupplyBeacon : HDWeapon
 			TNT1 A 0 A_JumpIf(!PressingFire() && !PressingAltfire(), "Ready");
 			TNT1 A 1
 			{
-				int loadedAmmoCount = A_GetLoadedAmmoCount();
+				int loadedAmmoCount = A_GetLoadedItemCount();
 				if (loadedAmmoCount == 0)
 				{
 					SetWeaponState('Nope');
 					return;
-				}
-				for (int i = 0; i < SlotCount; ++i)
-				{
-					if (invoker.Slots[i])
-					{
-						invoker.SlotClasses[i] = invoker.Slots[i].GetClass();
-						invoker.Slots[i] = null;
-					}
 				}
 				invoker.Active = true;
 				invoker.SetShade(player.GetColor());
@@ -338,8 +365,8 @@ class HDSupplyBeacon : HDWeapon
 		Reload:
 			TNT1 A 1
 			{
-				int size = invoker.AvailableAmmo.Size();
-				if (size > 0 && invoker.SelIndex < size && !A_CheckIfLoaded(invoker.AvailableAmmo[invoker.SelIndex].GetClass()))
+				int size = invoker.AvailableItems.Size();
+				if (size > 0 && invoker.SelIndex < size && !A_CheckIfLoaded(invoker.AvailableItems[invoker.SelIndex].Type))
 				{
 					for (int i = 0; i < SlotCount; ++i)
 					{
@@ -347,7 +374,7 @@ class HDSupplyBeacon : HDWeapon
 						{
 							A_StartSound("weapons/pocket", 9);
 							A_SetTics(12);
-							invoker.Slots[i] = invoker.AvailableAmmo[invoker.SelIndex];
+							invoker.Slots[i] = invoker.AvailableItems[invoker.SelIndex];
 							break;
 						}
 					}
@@ -392,7 +419,7 @@ class HDSupplyDropPod : Actor
 
 	States
 	{
-			RegisterSprites:
+		RegisterSprites:
 			SPDP A 0; SPDB A 0;
 
 		Spawn:
@@ -411,7 +438,6 @@ class HDSupplyDropPod : Actor
 			#### A 25
 			{
 				master.bINVISIBLE = true;
-				master.bNOINTERACTION = true;
 				DistantQuaker.Quake(self, 7, 70, 1024, 8, 128, 256, 256);
 				A_StartSound("SupplyPod/Slam", CHAN_VOICE, attenuation: 0.2);
 				A_Explode(40000, int(HDCONST_ONEMETRE * 3), damagetype: 'Bashing');
@@ -429,32 +455,20 @@ class HDSupplyDropPod : Actor
 			#### E 5
 			{
 				let beacon = HDSupplyBeacon(master);
-				int totalLoaded = beacon.A_GetLoadedAmmoCount();
+				int totalLoaded = beacon.A_GetLoadedItemCount();
 
 				bool success; Actor a;
 				for (int i = 0; i < beacon.SlotCount; ++i)
 				{
-					if (!beacon.SlotClasses[i])
+					if (!beacon.Slots[i])
 					{
 						continue;
 					}
 
-					double bulkDiv = GetDefaultByType(beacon.SlotClasses[i]).Bulk;
-					if (beacon.SlotClasses[i] is 'HDMagAmmo')
-					{
-						let magDef = GetDefaultByType((class<HDMagAmmo>)(beacon.SlotClasses[i]));
-						if (magDef.MagBulk > 0)
-						{
-							bulkDiv = magDef.MagBulk * 2 + magDef.RoundBulk * magDef.MaxPerUnit;
-						}
-						if (beacon.SlotClasses[i] is 'HDInjectorMaker')
-						{
-							bulkDiv *= 2.5;
-						}
-					}
-					int minAmt = int(360 / bulkDiv / totalLoaded);
-					int maxAmt = int(480 / bulkDiv / totalLoaded);
-					[success, a] = A_SpawnItemEx(beacon.SlotClasses[i], radius / 2, 0, height / 3, frandom(2.0, 2.25), frandom(0.15, 0.4), frandom(2.0, 4.0), -90 + 90 * i, SXF_NOCHECKPOSITION);
+					int minAmt, maxAmt;
+					[minAmt, maxAmt] = beacon.Slots[i].GetDropAmount(totalLoaded);
+
+					[success, a] = A_SpawnItemEx(beacon.Slots[i].Type, radius / 2, 0, height / 3, frandom(2.0, 2.25), frandom(0.15, 0.4), frandom(2.0, 4.0), -90 + 90 * i, SXF_NOCHECKPOSITION);
 					Inventory(a).Amount = random(minAmt, maxAmt);
 				}
 				beacon.Destroy();
@@ -468,7 +482,7 @@ class HDSupplyBeaconLight : PointLight
 {
 	override void Tick()
 	{
-		if (!master || Inventory(master).owner)
+		if (!master || master.bINVISIBLE || Inventory(master).owner)
 		{
 			Destroy();
 			return;
