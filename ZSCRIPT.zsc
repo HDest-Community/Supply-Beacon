@@ -282,10 +282,22 @@ class HDSupplyBeacon : HDWeapon
 		Speen:
 			SPBC CCDDEEFFGG 1
 			{
+				if (!AceCore.IsSkyAbove(invoker))
+				{
+					if (invoker.PrevOwner)
+					{
+						invoker.PrevOwner.A_Log("Insufficient space for drop pod to land. Please relocate beacon.", true);
+					}
+					invoker.Active = false;
+					SetStateLabel('Spawn');
+					return;
+				}
+
 				if (bINVISIBLE)
 				{
 					return;
 				}
+				
 				if (invoker.FullHeight < 128)
 				{
 					invoker.FullHeight += 16;
