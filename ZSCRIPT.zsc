@@ -15,7 +15,22 @@ class SupplyOrder play
 
 	static bool IsValidType(HDPickup item)
 	{
-		return item && item is 'FourMilAmmo' || item is 'HDAmmo' && !item.bCHEATNOGIVE && (item is 'HDInjectorMaker' || !item.bINVBAR);
+		if (!item)
+		{
+			return false;
+		}
+
+		// [Ace] Explicitly valid items.
+		bool isValidAnyway = false;
+		switch (item.GetClassName())
+		{
+			case 'DespicytoFilter':
+			case 'FourMilAmmo':
+				isValidAnyway = true;
+				break;
+		}
+
+		return isValidAnyway || item is 'HDAmmo' && !item.bCHEATNOGIVE && (item is 'HDInjectorMaker' || !item.bINVBAR);
 	}
 
 	clearscope int, int GetDropAmount(int itemCount)
