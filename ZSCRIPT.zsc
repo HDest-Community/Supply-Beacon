@@ -509,7 +509,7 @@ class HDSupplyBeaconLight : PointLight
 {
 	override void Tick()
 	{
-		if (!master || master.bINVISIBLE || Inventory(master).owner)
+		if (!master || master.bINVISIBLE || Inventory(master).owner || !HDSupplyBeacon(master).Active)
 		{
 			Destroy();
 			return;
