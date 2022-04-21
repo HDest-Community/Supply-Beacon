@@ -223,7 +223,7 @@ class HDSupplyBeacon : HDWeapon
 
 	private PointLight DynLight;
 	private double FullHeight;
-	private bool Active;
+	bool Active;
 	private int ArrivalTicker;
 	private Actor PrevOwner;
 	private int ActivationDelay;
