@@ -36,8 +36,8 @@ class SupplyOrder play
 	clearscope int, int GetDropAmount(int itemCount)
 	{
 		double divFac = max(1, itemCount * 0.75);
-		int minAmt = int(600 / divFac);
-		int maxAmt = int(1000 / divFac);
+		int minAmt = int(500 / divFac);
+		int maxAmt = int(800 / divFac);
 
 		double finalDiv = 1;
 		if (!(Type is 'HDRoundAmmo'))
