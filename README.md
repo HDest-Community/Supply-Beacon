@@ -1,5 +1,5 @@
 ### Important
-- This mod requires [AceCoreLib](https://gitlab.com/accensi/hd-addons/acecorelib).
+- This mod requires [AceCoreLib](https://github.com/HDest-Community/AceCoreLib).
 
 ### Notes
 ---
