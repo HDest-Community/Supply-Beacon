@@ -169,7 +169,7 @@ class HDSupplyBeacon : HDWeapon
 	override double WeaponBulk() { return 40; }
 	override void DrawHUDStuff(HDStatusBar sb, HDWeapon hdw, HDPlayerPawn hpl)
 	{
-		vector2 bob = hpl.hudbob * 0.3;
+		vector2 bob = hpl.wepbob * 0.3;
 		int offset = WeaponStatus[SBProp_UseOffset];
 		bob.y += offset;
 
@@ -178,7 +178,7 @@ class HDSupplyBeacon : HDWeapon
 		int size = AvailableItems.Size();
 		if (size > 0 && SelIndex < size && AvailableItems[SelIndex])
 		{
-			sb.DrawImage(ItemStorage.GetIcon(AvailableItems[SelIndex].InvRef, invIconFirst: true), (0, 95) + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_BOTTOM, box: (30, 30), scale: (5.0, 5.0));
+			//sb.DrawImage(ItemStorage.GetIcon(AvailableItems[SelIndex].InvRef, invIconFirst: true), (0, 95) + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_BOTTOM, box: (30, 30), scale: (5.0, 5.0));
 			sb.DrawString(sb.pSmallFont, AvailableItems[SelIndex].InvRef.GetTag(), (0, 100) + bob, sb.DI_SCREEN_CENTER | sb.DI_TEXT_ALIGN_CENTER, Font.CR_WHITE);
 		}
 		else if (offset < 5)
@@ -196,7 +196,7 @@ class HDSupplyBeacon : HDWeapon
 
 			vector2 imagePos = (-35 * cos(90 * i), 35 * sin(90 * i));
 
-			sb.DrawImage(ItemStorage.GetIcon(Slots[i].InvRef, invIconFirst: true), imagePos + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_CENTER, box: (15, 15), scale: (5.0, 5.0));
+			//sb.DrawImage(ItemStorage.GetIcon(Slots[i].InvRef, invIconFirst: true), imagePos + bob, sb.DI_SCREEN_CENTER | sb.DI_ITEM_CENTER, box: (15, 15), scale: (5.0, 5.0));
 
 			int minAmt, maxAmt;
 			[minAmt, maxAmt] = Slots[i].GetDropAmount(totalLoaded);
